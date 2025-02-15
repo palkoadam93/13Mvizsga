@@ -1,0 +1,93 @@
+CORUSCANT
+Router(config)#ip dhcp excluded-address 192.168.2.1 192.168.2.10
+Router(config)#ip dhcp pool vizsga
+Router(dhcp-config)#network 192.168.2.0 255.255.255.0
+Router(dhcp-config)#dns-server 8.8.8.8
+Router(dhcp-config)#default-router 192.168.2.1
+Router(dhcp-config)#end
+
+MUSTAFAR
+Router(config)#ip dhcp excluded-address 192.168.1.1 192.168.1.10
+Router(config)#ip dhcp pool vizsga
+Router(dhcp-config)#network 192.168.1.0 255.255.255.0
+Router(dhcp-config)#dns-server 8.8.8.8
+Router(dhcp-config)#default-router 192.168.1.1
+Router(dhcp-config)#end
+
+CORELIA
+Switch(config)#interface vlan 99
+Switch(config-if)#ip address 192.168.1.10 255.255.255.0
+Switch(config-if)#no shutdown
+Switch(config-if)#end
+
+STATIKUS -> TATOOINE
+
+Router(config)# ip route 192.168.10.0 255.255.255.0 10.10.10.130
+
+Router(config)# ip route 192.168.20.0 255.255.255.0 10.10.10.130
+
+STATIKUS -> ALDERAAN
+
+Router(config)# ip route 192.168.0.0 255.255.255.0 10.10.10.129
+RIP -> ALDERAAN
+
+Router(config)# router rip
+Router(config)# version 2
+Router(config)# no auto-summary
+Router(config)# network 192.168.10.0
+Router(config)# network 192.168.20.0
+Router(config)# network 10.10.10.64
+Router(config)# exit
+
+RIP -> CORUSCANT
+
+Router(config)# router rip
+Router(config)# version 2
+Router(config)# no auto-summary
+Router(config)# network 192.168.2.0
+Router(config)# network 10.10.10.64
+Router(config)# exit
+
+***********************************************
+
+OSPF -> TATOOINE
+
+Router(config)# router ospf 25
+Router(config)# network 192.168.0.0 0.0.0.255 area 0
+Router(config)# network 10.10.10.0 0.0.0.3 area 0
+
+OSPF -> CORUSCANT
+
+Router(config)# router ospf 25
+Router(config)# network 192.168.2.0 0.0.0.255 area 0
+Router(config)# network 10.10.10.0 0.0.0.3 area 0
+
+***********************************************
+
+VLAN -> ALDERAAN
+
+int f0/0.10
+encapsulation dot1q 10
+ip add 192.168.10.1 255.255.255.0
+no shut
+exit
+
+int f0/0.20
+encapsulation dot1q 20
+ip add 192.168.20.1 255.255.255.0
+no shut
+exit
+
+PHOBOS: 192.168.10.10 255.255.255.0
+gateway: 192.168.10.1
+DEIMOS: 192.168.20.10 255.255.255.0
+gateway: 192.168.20.1
+
+************************************************
+
+ACL -> TATOOINE
+
+Router(config)# access-list 1 deny 192.168.0.10 0.0.0.255
+Router(config)# access-list 1 permit any
+Router(config)# int f0/0
+Router(config-if)# ip access-group 1 in
